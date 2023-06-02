@@ -27,6 +27,14 @@ p {
   cursor: pointer;
 }
 
+.game-text {
+  position: absolute;
+  bottom: 100px;
+  left: 50px;
+  height: 50px;
+  background-color: #f7f7f7;
+}
+
 .dinosaur {
   position: absolute;
   bottom: 0;

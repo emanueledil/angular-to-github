@@ -10,11 +10,18 @@ export class Home1Component implements OnInit {
   cacti: { x: number }[] = [];
   isJumping = false;
   points = 0;
+  intervalId!: NodeJS.Timer
+  started = false;
 
   constructor() { }
 
   ngOnInit() {
-    setInterval(() => {
+
+    this.clearIntervalGame();
+  }
+
+  startGame(){
+    this.intervalId =  setInterval(() => {
       if (Math.random() < 0.01) {
         this.cacti.push({ x: 600 });
       }
@@ -31,10 +38,20 @@ export class Home1Component implements OnInit {
       }
 
       if (this.isColliding()) {
+        this.clearIntervalGame();
         alert('Game Over');
         this.resetGame();
       }
     }, 20);
+  }
+
+  screenClick(){
+    if(this.started){
+      this.jump()
+    }else{
+      this.startGame();
+      this.started = true;
+    }
   }
 
   jump() {
@@ -44,6 +61,11 @@ export class Home1Component implements OnInit {
         this.isJumping = false;
       }, 500);
     }
+  }
+
+  clearIntervalGame(){
+    this.intervalId && clearInterval(this.intervalId)
+
   }
 
   isColliding() {
@@ -69,5 +91,6 @@ export class Home1Component implements OnInit {
   resetGame() {
     this.cacti = [];
     this.points = 0;
+    this.started = false;
   }
 }

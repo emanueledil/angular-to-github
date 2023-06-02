@@ -2,7 +2,10 @@
 <div class="container">
   <h1>Welcome to Home1</h1>
   <p>This is the content of Home1 page.</p>
-  <div class="game-container" (click)="jump()">
+  <div class="game-container" (click)="screenClick()">
+    <div *ngIf="!started" class="game-text">
+      click to start
+    </div>
     <img class="dinosaur" [ngClass]="{'jumping': isJumping}" src="assets/images/dinosaur.png" alt="Dinosaur">
     <img *ngFor="let cactus of cacti" class="cactus" src="assets/images/cactus2.png" alt="Cactus" [style.left.px]="cactus.x">
 
