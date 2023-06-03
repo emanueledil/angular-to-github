@@ -13,8 +13,10 @@ export class Home2Component implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('canvas') canvasElement!: ElementRef;
   videoWidth = 0;
   videoHeight = 0;
-  leftHand: CenterHandPos = {x:0, y:0}
-  rightHand: CenterHandPos = {x:0, y:0}
+  leftHand: CenterHandPos = {x: 0, y: 0}
+  rightHand: CenterHandPos = {x: 0, y: 0}
+  singleHand: CenterHandPos = {x: 0, y: 0}
+  oneHandMode = true;
 
 
   modelParams = {
@@ -40,7 +42,7 @@ export class Home2Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-   this.videoWidth = this.videoElement.nativeElement.videoWidth;
+    this.videoWidth = this.videoElement.nativeElement.videoWidth;
     this.videoHeight = this.videoElement.nativeElement.videoHeight;
     this.context = this.canvasElement.nativeElement.getContext('2d');
   }
@@ -67,27 +69,101 @@ export class Home2Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private updateHandPositions(predictions: any[]) {
+    if (this.oneHandMode) {
+      this.oneHandModePlay(predictions)
+    } else {
+      this.twoHandsModePlay(predictions)
+    }
+  }
+
+  oneHandModePlay(predictions: any[]) {
     this.videoWidth = this.videoElement.nativeElement.videoWidth;
     this.videoHeight = this.videoElement.nativeElement.videoHeight;
-    predictions.forEach((prediction: any)=>{
+    let noHands = true;
+    predictions.forEach((prediction: any) => {
+      if (prediction.label == "open" || prediction.label == "closed" || prediction.label == "pinch") {
+        const [x, y, w, h] = prediction.bbox // x, y left corner
+        const centerHand: CenterHandPos = {x: x + w / 2, y: y + h} // i take the maximum height
+        this.singleHand = centerHand;
+        if (prediction.label == "open") {
+          noHands = false;
+        }
+      }
 
-      const [x, y, w, h ] = prediction.bbox // x, y left corner
-      const centerHand: CenterHandPos = {x: x +w/2, y: y-h/2}
-      if(x>(this.videoWidth/2)){
+    })
+    if (this.videoHeight > 0 && this.videoWidth > 0) {
+      let volume = 1 - this.singleHand.y / this.videoHeight;
+      const frequency = this.singleHand.x / this.videoWidth * 1000;
+      if (volume > 1) {
+        volume = 1
+      }
+      if (volume < 0) {
+        volume = 0
+      }
+      if (noHands) {
+        volume = 0;
+      }
+      console.debug('hand', this.singleHand)
+      console.debug('freq ', frequency, 'vol ', volume)
+      this.synthService.changeFrequency(frequency);
+      this.synthService.changeVolume(volume)
+    }
+    // this.videoWidth = this.videoElement.nativeElement.videoWidth;
+    // this.videoHeight = this.videoElement.nativeElement.videoHeight;
+    // let action = '';
+    // predictions.forEach((prediction: any)=>{
+    //   if(prediction.label == "open" || prediction.label == "closed" || prediction.label=="pinch"){
+    //     const [x, y, w, h ] = prediction.bbox // x, y left corner
+    //     const centerHand: CenterHandPos = {x: x +w/2, y: y-h/2}
+    //     this.singleHand = centerHand;
+    //     action = prediction.label;
+    //   }
+    // })
+    // if(this.videoHeight >0 && this.videoWidth > 0){
+    //   const frequency = this.singleHand.x/this.videoWidth * 1000;
+    //   let volume =  this.singleHand.y/this.videoHeight ;
+    //   if(volume<0){
+    //     volume = 0
+    //   }
+    //   if(volume>1){
+    //     volume = 1
+    //   }
+    //   if(action == "pinch" || action == "closed"){
+    //     volume = 0
+    //   }
+    //   this.synthService.changeFrequency(frequency);
+    //   this.synthService.changeVolume(volume)
+    //   console.debug('hand ', this.singleHand)
+    //   console.debug('frequency ', frequency, 'volume ', volume)
+    //
+    //   //this.playSound(this.rightHand.y/this.videoHeight * 1000 , this.leftHand.y/this.videoWidth);
+    // }
+  }
+
+  twoHandsModePlay(predictions: any[]) {
+    this.videoWidth = this.videoElement.nativeElement.videoWidth;
+    this.videoHeight = this.videoElement.nativeElement.videoHeight;
+    predictions.forEach((prediction: any) => {
+
+      const [x, y, w, h] = prediction.bbox // x, y left corner
+      const centerHand: CenterHandPos = {x: x + w / 2, y: y - h / 2}
+      if (centerHand.x > (this.videoWidth / 2)) {
         this.leftHand = centerHand;
-      }else{
+      } else {
         this.rightHand = centerHand;
       }
 
     })
-    if(this.videoHeight >0 && this.videoWidth > 0){
-      const frequency = this.rightHand.y/this.videoHeight * 1000;
-      const volume = this.leftHand.y/this.videoWidth;
+    if (this.videoHeight > 0 && this.videoWidth > 0) {
+      const frequency = this.rightHand.y / this.videoHeight * 1000;
+      const volume = this.leftHand.y / this.videoHeight;
       this.synthService.changeFrequency(frequency);
       this.synthService.changeVolume(volume)
       //this.playSound(this.rightHand.y/this.videoHeight * 1000 , this.leftHand.y/this.videoWidth);
     }
   }
+
+
   play(frequency: number) {
     this.synthService.play(frequency);
   }
