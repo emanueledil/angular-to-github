@@ -49,6 +49,7 @@ export class Home2Component implements OnInit, AfterViewInit, OnDestroy {
 
   private startVideo() {
     this.synthService.play(220);
+    this.synthService.changeVolume(0)
     handTrack.startVideo(this.videoElement.nativeElement).then((status: any) => {
       if (status) {
         this.runDetection();
@@ -59,6 +60,9 @@ export class Home2Component implements OnInit, AfterViewInit, OnDestroy {
   private runDetection() {
     this.model.detect(this.videoElement.nativeElement).then((predictions: any) => {
       this.model.renderPredictions(predictions, this.canvasElement.nativeElement, this.context, this.videoElement.nativeElement);
+      if(predictions.length == 0){
+        this.synthService.changeVolume(0);
+      }
       if (predictions.length > 0) {
         this.updateHandPositions(predictions);
       }
@@ -103,41 +107,9 @@ export class Home2Component implements OnInit, AfterViewInit, OnDestroy {
       if (noHands) {
         volume = 0;
       }
-      console.debug('hand', this.singleHand)
-      console.debug('freq ', frequency, 'vol ', volume)
       this.synthService.changeFrequency(frequency);
       this.synthService.changeVolume(volume)
     }
-    // this.videoWidth = this.videoElement.nativeElement.videoWidth;
-    // this.videoHeight = this.videoElement.nativeElement.videoHeight;
-    // let action = '';
-    // predictions.forEach((prediction: any)=>{
-    //   if(prediction.label == "open" || prediction.label == "closed" || prediction.label=="pinch"){
-    //     const [x, y, w, h ] = prediction.bbox // x, y left corner
-    //     const centerHand: CenterHandPos = {x: x +w/2, y: y-h/2}
-    //     this.singleHand = centerHand;
-    //     action = prediction.label;
-    //   }
-    // })
-    // if(this.videoHeight >0 && this.videoWidth > 0){
-    //   const frequency = this.singleHand.x/this.videoWidth * 1000;
-    //   let volume =  this.singleHand.y/this.videoHeight ;
-    //   if(volume<0){
-    //     volume = 0
-    //   }
-    //   if(volume>1){
-    //     volume = 1
-    //   }
-    //   if(action == "pinch" || action == "closed"){
-    //     volume = 0
-    //   }
-    //   this.synthService.changeFrequency(frequency);
-    //   this.synthService.changeVolume(volume)
-    //   console.debug('hand ', this.singleHand)
-    //   console.debug('frequency ', frequency, 'volume ', volume)
-    //
-    //   //this.playSound(this.rightHand.y/this.videoHeight * 1000 , this.leftHand.y/this.videoWidth);
-    // }
   }
 
   twoHandsModePlay(predictions: any[]) {
