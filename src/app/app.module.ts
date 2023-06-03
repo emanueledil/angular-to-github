@@ -12,12 +12,14 @@ import {MatToolbarModule} from "@angular/material/toolbar";
 import {MatIconModule} from "@angular/material/icon";
 import {MatMenuModule} from "@angular/material/menu";
 import {MatButtonModule} from "@angular/material/button";
+import { Home3Component } from './pages/home3/home3.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     Home1Component,
-    Home2Component
+    Home2Component,
+    Home3Component
   ],
   imports: [
     BrowserModule,
