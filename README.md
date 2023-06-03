@@ -1,4 +1,5 @@
-Update main GITHUB.io
+Update main github.io
+the theremin page doesn't work properly on smartphones (low fps)
 
 # AngularToGithub
 
