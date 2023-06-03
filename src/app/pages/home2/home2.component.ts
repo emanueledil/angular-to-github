@@ -1,19 +1,16 @@
-import {Component, ElementRef, OnInit, ViewChild, AfterViewInit} from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild, AfterViewInit, OnDestroy} from '@angular/core';
 
 import * as handTrack from 'handtrackjs';
+import {SynthServiceService} from "../../services/synth-service.service";
 
 @Component({
   selector: 'app-home2',
   templateUrl: './home2.component.html',
   styleUrls: ['./home2.component.css']
 })
-export class Home2Component implements OnInit, AfterViewInit {
+export class Home2Component implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('video') videoElement!: ElementRef;
   @ViewChild('canvas') canvasElement!: ElementRef;
-  audioContext!: AudioContext;
-
-  distFingersDx: number = 0;
-  distFingersSx: number = 0;
   videoWidth = 0;
   videoHeight = 0;
   leftHand: CenterHandPos = {x:0, y:0}
@@ -30,8 +27,9 @@ export class Home2Component implements OnInit, AfterViewInit {
   private model: any;
   private context!: CanvasRenderingContext2D;
 
-  constructor() {
-    this.audioContext = new AudioContext();
+  constructor(
+    private synthService: SynthServiceService
+  ) {
   }
 
   ngOnInit() {
@@ -48,6 +46,7 @@ export class Home2Component implements OnInit, AfterViewInit {
   }
 
   private startVideo() {
+    this.synthService.play(220);
     handTrack.startVideo(this.videoElement.nativeElement).then((status: any) => {
       if (status) {
         this.runDetection();
@@ -82,33 +81,47 @@ export class Home2Component implements OnInit, AfterViewInit {
 
     })
     if(this.videoHeight >0 && this.videoWidth > 0){
-      this.playSound(this.rightHand.y/this.videoHeight * 1000 , this.leftHand.y/this.videoWidth);
+      const frequency = this.rightHand.y/this.videoHeight * 1000;
+      const volume = this.leftHand.y/this.videoWidth;
+      this.synthService.changeFrequency(frequency);
+      this.synthService.changeVolume(volume)
+      //this.playSound(this.rightHand.y/this.videoHeight * 1000 , this.leftHand.y/this.videoWidth);
     }
   }
-
-
-  createOscillator(frequency: number): OscillatorNode {
-    const oscillator = this.audioContext.createOscillator();
-    oscillator.type = 'sine'; // Sine wave
-    oscillator.frequency.value = frequency; // Frequency in Hz
-    return oscillator;
+  play(frequency: number) {
+    this.synthService.play(frequency);
   }
 
-  createGainNode(volume: number): GainNode {
-    const gainNode = this.audioContext.createGain();
-    gainNode.gain.value = volume;
-    return gainNode;
+  stop() {
+    this.synthService.stop();
   }
 
-  playSound(frequency: number, volume: number) {
-    const oscillator = this.createOscillator(frequency);
-    const gainNode = this.createGainNode(volume);
-
-    oscillator.connect(gainNode);
-    gainNode.connect(this.audioContext.destination);
-
-    oscillator.start(this.audioContext.currentTime);
+  ngOnDestroy() {
+    this.synthService.stop()
   }
+
+  // createOscillator(frequency: number): OscillatorNode {
+  //   const oscillator = this.audioContext.createOscillator();
+  //   oscillator.type = 'sine'; // Sine wave
+  //   oscillator.frequency.value = frequency; // Frequency in Hz
+  //   return oscillator;
+  // }
+  //
+  // createGainNode(volume: number): GainNode {
+  //   const gainNode = this.audioContext.createGain();
+  //   gainNode.gain.value = volume;
+  //   return gainNode;
+  // }
+  //
+  // playSound(frequency: number, volume: number) {
+  //   const oscillator = this.createOscillator(frequency);
+  //   const gainNode = this.createGainNode(volume);
+  //
+  //   oscillator.connect(gainNode);
+  //   gainNode.connect(this.audioContext.destination);
+  //
+  //   oscillator.start(this.audioContext.currentTime);
+  // }
 
 }
 
