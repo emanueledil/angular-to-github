@@ -35,6 +35,9 @@ export class Home2Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
+    if (window.innerWidth <= 768) {
+      alert('This app may still not work properly on smartphones...');
+    }
     handTrack.load(this.modelParams).then((lmodel: any) => {
       this.model = lmodel;
       this.startVideo();
