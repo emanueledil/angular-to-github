@@ -1,5 +1,6 @@
 Update main github.io
 the theremin page doesn't work properly on smartphones (low fps)
+Deploy: after build, enter ngh --dir=docs
 
 # AngularToGithub
 
